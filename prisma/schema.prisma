@@ -9,10 +9,7 @@ datasource db {
 
 model Message {
   id          Int       @id() @default(autoincrement()) @unique
-  message     String
-  message_date DateTime
-  user_id     Int
-  user        User      @relation(fields: [user_id], references: [id])
-
+  content     String
+  timestamp   DateTime  @default(now())
   @@map("messages")
 }
