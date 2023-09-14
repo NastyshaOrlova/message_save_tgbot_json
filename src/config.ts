@@ -14,6 +14,6 @@ if (!SHON_TG_ID) {
 
 export const config = {
   BOT_TOKEN,
-  CHES_TG_ID: +CHES_TG_ID,
+  CHES_TG_ID: +CHES_TG_ID, // + преобразует строку в число
   SHON_TG_ID: +SHON_TG_ID,
 };
