@@ -3,14 +3,16 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql" // это бд
+  url      = env("DATABASE_URL") // это ее url
 }
 
-model User {
+model Message {
   id          Int       @id() @default(autoincrement()) @unique
-  nickname    String
-  tg_id       Int       @unique
+  message     String
+  message_date DateTime
+  user_id     Int
+  user        User      @relation(fields: [user_id], references: [id])
 
-  @@map("users")
+  @@map("messages")
 }
