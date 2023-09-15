@@ -5,18 +5,20 @@ import TelegramBot from 'node-telegram-bot-api'; // библиотека для 
 import { config } from './config';
 import { prisma } from './prisma';
 
-const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
-// создание бота(с нашим токеном и разрешение на получение сообщений)
+prisma.message.findMany({}).then(console.log).catch(console.error)
 
-bot.on('message', async msg => { // метод прослушивание входяших сообщений
-  if (msg.from?.id !== config.CHES_TG_ID && msg.from?.id !== config.SHON_TG_ID) {
-    bot.sendMessage(msg.chat.id, 'You are not allowed to use this bot! Ты бука)');
-    return; // завершает функцию если условие выше выполнилось
-  }
-  // msg.from.id - тот кто отправил сообщение 
+// const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
+// // создание бота(с нашим токеном и разрешение на получение сообщений)
 
-  bot.sendMessage(msg.chat.id, 'Hello World!'); // Отправляет сообщение
-});
+// bot.on('message', async msg => { // метод прослушивание входяших сообщений
+//   if (msg.from?.id !== config.CHES_TG_ID && msg.from?.id !== config.SHON_TG_ID) {
+//     bot.sendMessage(msg.chat.id, 'You are not allowed to use this bot! Ты бука)');
+//     return; // завершает функцию если условие выше выполнилось
+//   }
+//   // msg.from.id - тот кто отправил сообщение 
+
+//   bot.sendMessage(msg.chat.id, 'Hello World!'); // Отправляет сообщение
+// });
 
 
 
