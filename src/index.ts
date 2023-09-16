@@ -20,10 +20,25 @@ bot.on('message', async msg => { // метод прослушивание вхо
     return;
   }
 
+  if (msg.text === "/show") {
+    const messages = await prisma.message.findMany({
+      where: {
+        user_id: msg.from.id
+      }
+    })
+
+    for (let i = 0; i < messages.length; i++) {
+      bot.sendMessage(msg.chat.id, `${messages[i].content}`)
+    }
+    return;
+  }
+
+
   if (msg.text === "/clean") {
     try {
         await prisma.message.deleteMany({
             where: {
+                user_id: msg.from.id,
                 content: {
                     not: '/start'
                 }
@@ -44,7 +59,8 @@ bot.on('message', async msg => { // метод прослушивание вхо
         await prisma.message.create({
             data: {
                 content: msg.text,
-                timestamp: new Date()
+                timestamp: new Date(),
+                user_id: msg.chat.id
             }
         });
 
@@ -57,11 +73,3 @@ bot.on('message', async msg => { // метод прослушивание вхо
     bot.sendMessage(msg.chat.id, 'Вы можете отправлять только текст');
   }
 });
-
-
-
-// 1. Разреши только текстовые сообщения
-// 2. На любое текстовое сообщение отвечай "Вы написали: <текст сообщения>. Я это сохранил."
-// 3. Наши команды будут начинаться с /, например /start
-// 4. Если команада /start, то отвечай "Привет, я бот, который сохраняет ваши сообщения"
-// 5. /clean - очищает все сообщения из базы данных, кромe самого первого "/start" и удаляет все сообщения из чата

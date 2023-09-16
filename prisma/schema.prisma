@@ -11,6 +11,7 @@ model Message {
   id          Int       @id() @default(autoincrement()) @unique
   content     String
   timestamp   DateTime @default(now())
+  user_id     Int
 
   @@map("messages")
 }
