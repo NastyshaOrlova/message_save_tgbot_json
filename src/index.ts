@@ -11,64 +11,79 @@ const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
 
 bot.on('message', async msg => { // метод прослушивание входяших сообщений
   if (msg.from?.id !== config.CHES_TG_ID && msg.from?.id !== config.SHON_TG_ID) {
-    bot.sendMessage(msg.chat.id, 'You are not allowed to use this bot!');
+    bot.sendMessage(msg.chat.id, 'Прости, но тебе пользоваться этим чатом нельзя');
     return; 
   }
   
+  // /start
   if (msg.text === "/start") {
-    bot.sendMessage(msg.chat.id, "Привет, я бот, который сохраняет ваши сообщения");
+    bot.sendMessage(msg.chat.id, "Привет! Я буду сохранять твои сообщения! ");
     return;
-  }
+  } 
 
+  // /show
   if (msg.text === "/show") {
-    const messages = await prisma.message.findMany({
-      where: {
-        user_id: msg.from.id
+    const messages = await prisma.message.findMany({})
+    if (messages.length > 0) {
+      await bot.sendMessage(msg.chat.id, 'Вот все сохраненые сообщения:');
+      for (let i = 0; i < messages.length; i++) {
+        bot.sendMessage(msg.chat.id, `"${messages[i].content}" - ${messages[i].id}`)
       }
-    })
+      return;
+    } else {
+      bot.sendMessage(msg.chat.id, 'БД пуста')
+      return;
+    }
 
-    for (let i = 0; i < messages.length; i++) {
-      bot.sendMessage(msg.chat.id, `${messages[i].content}`)
+  } 
+
+  // /delete
+  if (msg.text === "/delete") {
+    const messages = await prisma.message.findMany({})
+    if (messages.length > 0) {
+      await prisma.message.deleteMany({
+        where: {
+            content: {
+                not: '/start'
+            }
+        }
+      }); 
+      bot.sendMessage(msg.chat.id, "Я удалил все сообщения!");
+      return; 
+    } else {
+      bot.sendMessage(msg.chat.id, "Мне нечего удалять! БД и так пустая");
+      return;
+    }
+  }
+
+  // /delete_id
+  if (msg.text?.startsWith("/delete ")) {
+    const messageId = parseInt(msg.text.split(' ')[1]);
+    try {
+      await prisma.message.delete({
+        where: {
+          id: messageId
+        }
+      });
+      bot.sendMessage(msg.chat.id, `Я удалил сообщение под ${messageId} id!`);
+    } catch (error) {
+      if (error instanceof Error) {  // Проверка, является ли error экземпляром класса Error
+        if (error.message.includes('Record to delete does not exist')) {
+          bot.sendMessage(msg.chat.id, "Такого id не существует");
+        } 
+      }
     }
     return;
   }
 
-
-  if (msg.text === "/clean") {
-    try {
-        await prisma.message.deleteMany({
-            where: {
-                user_id: msg.from.id,
-                content: {
-                    not: '/start'
-                }
-            }
-        });
-
-        bot.sendMessage(msg.chat.id, "Bce сообщения были удалены из базы данных. Пожалуйста, очистите историю чата вручную.");
-        return;
-    } catch(error) {
-        console.error("Ошибка при очистке сообщений:", error);
-        bot.sendMessage(msg.chat.id, "Произошла ошибка при очистке сообщений.");
-        return;
-    }
-  }
-
+  // отправка обычного сообщения 
   if(msg.text) {
-    try {
-        await prisma.message.create({
-            data: {
-                content: msg.text,
-                timestamp: new Date(),
-                user_id: msg.chat.id
-            }
-        });
-
-        bot.sendMessage(msg.chat.id, `Вы написали: "${msg.text}". Я это сохранил!`);
-    } catch(error) {
-        bot.sendMessage(msg.chat.id, "Произошла ошибка при сохранении сообщения.");
-        console.error(error);
-    }
+    await prisma.message.create({
+        data: {
+            content: msg.text
+        }
+    });
+    bot.sendMessage(msg.chat.id, "Я добавил!");
   } else {
     bot.sendMessage(msg.chat.id, 'Вы можете отправлять только текст');
   }
