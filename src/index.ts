@@ -12,9 +12,6 @@ console.log(db.createMessage({ text: 'Hello', timestamp: new Date(), userId: 235
 
 // prisma.message.findMany({}).then(console.log).catch(console.error);
 
-const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
-// // // создание бота(с нашим токеном и разрешение на получение сообщений)
-
 async function welcome(userId: number) {
   console.log(userId);
   // const user = await prisma.user.findUnique({
