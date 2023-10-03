@@ -14,11 +14,6 @@ console.log(db.createMessage({ text: 'Hello', timestamp: new Date(), userId: 235
 
 async function welcome(userId: number) {
   console.log(userId);
-  // const user = await prisma.user.findUnique({
-  //   where: {
-  //     id: userId,
-  //   },
-  // });
 
   // if (user) {
   //   bot.sendMessage(msg.chat.id, 'Введите другое сообщение!');
