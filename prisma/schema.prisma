@@ -7,9 +7,13 @@ datasource db {
   url      = env("DATABASE_URL") // это ее url
 }
 
-model Message {
-  id          Int       @id() @default(autoincrement()) @unique
-  content     String
+model User {
+  id     Int @id() @default(autoincrement()) @unique
+}
 
-  @@map("messages")
+model Message {
+  id           Int    @id() @default(autoincrement()) @unique
+  content      String
+  userId       Int
+  messageIndex Int
 }
