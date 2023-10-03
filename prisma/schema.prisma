@@ -7,9 +7,21 @@ datasource db {
   url      = env("DATABASE_URL") // это ее url
 }
 
+<<<<<<< HEAD
 model Message {
   id          Int       @id() @default(autoincrement()) @unique
   content     String
   timestamp   DateTime  @default(now())
   @@map("messages")
+=======
+model User {
+  id     Int @id() @default(autoincrement()) @unique
+}
+
+model Message {
+  id           Int    @id() @default(autoincrement()) @unique
+  content      String
+  userId       Int
+  messageIndex Int
+>>>>>>> 3190cab51f4074e98bc8831f5ec2f09649f42710
 }

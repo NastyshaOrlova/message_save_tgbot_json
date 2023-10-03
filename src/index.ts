@@ -11,18 +11,132 @@ const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
 // // создание бота(с нашим токеном и разрешение на получение сообщений)
 
 bot.on('message', async msg => {
-  // метод прослушивание входяших сообщений
-  // if (msg.from?.id !== config.CHES_TG_ID && msg.from?.id !== config.SHON_TG_ID) {
-  //   bot.sendMessage(msg.chat.id, 'You are not allowed to use this bot! Ты бука)');
-  //   return; // завершает функцию если условие выше выполнилось
-  // }
-  // msg.from.id - тот кто отправил сообщение
+  async function welcome(userId: number | undefined) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId
+      }
+    });
 
-  bot.sendMessage(msg.chat.id, `Hello, ${msg.chat.first_name}! Your CHAT_ID is ${msg.chat.id}`); // Отправляет сообщение
+    if(user) {
+      bot.sendMessage(msg.chat.id, "Введите другое сообщение!");
+    } else {
+      await prisma.user.create({
+        data: {
+          id: userId
+        }
+      });
+      bot.sendMessage(msg.chat.id, "Добро пожаловать!");
+    }
+  }
+
+  async function saveMessage(userId: number, text: string) {
+    await prisma.message.create({
+      data: {
+        content: text,
+        userId: userId,
+        messageIndex: 1
+      }
+    });
+    bot.sendMessage(msg.chat.id, "Я добавил!");
+  }
+
+  if (msg.text === '/start' && msg.from?.id) {
+    welcome(msg.from.id);
+  } if (msg.from?.id && msg.text) {
+    saveMessage(msg.from?.id, msg.text)
+  }
+  
 });
 
-// 1. Разреши только текстовые сообщения
-// 2. На любое текстовое сообщение отвечай "Вы написали: <текст сообщения>. Я это сохранил."
-// 3. Наши команды будут начинаться с /, например /start
-// 4. Если команада /start, то отвечай "Привет, я бот, который сохраняет ваши сообщения"
-// 5. /clean - очищает все сообщения из базы данных, кромe самого первого "/start" и удаляет все сообщения из чата
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // // /start
+  // if (msg.text === "/start") {
+  //   bot.sendMessage(msg.chat.id, "Привет! Я буду сохранять твои сообщения! ");
+  //   return;
+  // } 
+
+  // // /show
+  // if (msg.text === "/show") {
+  //   const messages = await prisma.message.findMany({})
+  //   if (messages.length > 0) {
+  //     await bot.sendMessage(msg.chat.id, 'Вот все сохраненые сообщения:');
+  //     for (let i = 0; i < messages.length; i++) {
+  //       bot.sendMessage(msg.chat.id, `"${messages[i].content}" - ${messages[i].id}`)
+  //     }
+  //     return;
+  //   } else {
+  //     bot.sendMessage(msg.chat.id, 'БД пуста')
+  //     return;
+  //   }
+
+  // } 
+
+  // // /delete
+  // if (msg.text === "/delete") {
+  //   const messages = await prisma.message.findMany({})
+  //   if (messages.length > 0) {
+  //     await prisma.message.deleteMany({
+  //       where: {
+  //           content: {
+  //               not: '/start'
+  //           }
+  //       }
+  //     }); 
+  //     bot.sendMessage(msg.chat.id, "Я удалил все сообщения!");
+  //     return; 
+  //   } else {
+  //     bot.sendMessage(msg.chat.id, "Мне нечего удалять! БД и так пустая");
+  //     return;
+  //   }
+  // }
+
+  // // /delete_id
+  // if (msg.text?.startsWith("/delete ")) {
+  //   const messageId = parseInt(msg.text.split(' ')[1]);
+  //   try {
+  //     await prisma.message.delete({
+  //       where: {
+  //         id: messageId
+  //       }
+  //     });
+  //     bot.sendMessage(msg.chat.id, `Я удалил сообщение под ${messageId} id!`);
+  //   } catch (error) {
+  //     if (error instanceof Error) {  // Проверка, является ли error экземпляром класса Error
+  //       if (error.message.includes('Record to delete does not exist')) {
+  //         bot.sendMessage(msg.chat.id, "Такого id не существует");
+  //       } 
+  //     }
+  //   }
+  //   return;
+  // }
+
+  // // отправка обычного сообщения 
+  // if(msg.text) {
+  //   await prisma.message.create({
+  //       data: {
+  //           content: msg.text
+  //       }
+  //   });
+  //   bot.sendMessage(msg.chat.id, "Я добавил!");
+  // } else {
+  //   bot.sendMessage(msg.chat.id, 'Вы можете отправлять только текст');
+  // }
