@@ -1,7 +1,5 @@
 import { makeId } from '../utils';
-import { json } from './json';
-
-type ID = number;
+import { AppDataUser, ID, readAppData, writeAppData } from './appData';
 
 type Message = {
   id: ID;
@@ -14,38 +12,52 @@ type User = {
   messages: Message[];
 };
 
+const transformUser = (user: AppDataUser): User => ({
+  ...user,
+  messages: user.messages.map(message => ({
+    ...message,
+    timestamp: new Date(message.timestamp),
+  })),
+});
+
 export const db = {
-  createUser: (): User => {
-    const users = json.users.read();
-    const newUser = { id: makeId(), messages: [] as number[] };
-    users.push(newUser);
-    json.users.write(users);
-    return { ...newUser, messages: [] };
+  users: {
+    // READ
+    getAll: (): User[] => {
+      const { users } = readAppData();
+      return users.map(transformUser);
+    },
+    // READ
+    getById: (id: ID): User | undefined => {
+      const { users } = readAppData();
+      const user = users.find(user => user.id === id);
+      if (!user) return;
+      return transformUser(user);
+    },
   },
-  getUsers: (): User[] => {
-    const messagesMap = json.messages.read();
-    const users = json.users.read().map(user => ({
-      ...user,
-      messages: user.messages.map(messageId => ({
-        ...messagesMap[messageId],
-        timestamp: new Date(messagesMap[messageId].timestamp),
-      })),
-    }));
-    return users;
-  },
-  createMessage: ({ text, timestamp, userId }: { text: string; timestamp: Date; userId: ID }): Message => {
-    const users = json.users.read();
-    const user = users.find(user => user.id === userId);
-    if (!user) throw new Error(`User with id ${userId} not found`);
-
-    const newMessage = { id: makeId(), text, timestamp };
-    const messagesMap = json.messages.read();
-
-    messagesMap[newMessage.id] = { ...newMessage, timestamp: newMessage.timestamp.toISOString() };
-    user.messages.push(newMessage.id);
-
-    json.messages.write(messagesMap);
-    json.users.write(users);
-    return newMessage;
+  messages: {
+    create: ({ text, datetime, userId }: { text: string; datetime?: Date; userId: number }) => {
+      if (!datetime) datetime = new Date();
+      const { users } = readAppData();
+      const user = users.find(user => user.id === userId);
+      if (!user) throw new Error(`No user found with id ${userId}`);
+      user.messages.push({
+        id: makeId(),
+        text,
+        timestamp: datetime.toISOString(),
+      });
+      writeAppData({ users });
+    },
+    update: ({ id, text, datetime }: { id: ID; text?: string; datetime?: Date }) => {
+      const { users } = readAppData();
+      for (const user of users) {
+        const message = user.messages.find(message => message.id === id);
+        if (!message) continue;
+        if (text) message.text = text;
+        if (datetime) message.timestamp = datetime.toISOString();
+        writeAppData({ users });
+        return;
+      }
+    },
   },
 };
