@@ -1,21 +1,12 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs'; 
 
-const SOURCE = __dirname + '/appData.json';
+const SOURCE = __dirname + '/.json';
+if (!SOURCE) throw new Error('No appData.json found!'); // проверят путь к appData.json
 
-if (!SOURCE) throw new Error('No appData.json found!');
-
-export type ID = number;
-
-export type AppDataUser = {
-  id: ID;
-  messages: {
-    id: ID;
-    text: string;
-    timestamp: string;
-  }[];
+type AppDataUser = { // показываем ожидаемую структуру для чтение/записи в .json
+  id: number;
 };
-
-type AppData = {
+type AppData = { 
   users: AppDataUser[];
 };
 
@@ -28,3 +19,5 @@ export const writeAppData = (appData: AppData) => {
   const appDataText = JSON.stringify(appData, null, 2);
   writeFileSync(SOURCE, appDataText, 'utf8');
 };
+
+export const app = 1;
