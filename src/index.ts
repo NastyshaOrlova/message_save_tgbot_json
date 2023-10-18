@@ -1,18 +1,8 @@
-import { db } from "./db/index";
+// import { db } from "./db/index";
+// import { makeId } from "./utils"
 
-// C
-// db.createUser();
-// db.createUserById(3);
-
-// R
-// console.log(db.getAllUserId());
-
-// U
-// db.updateUserById({currentId: 3, newId: 30});
-
-// D
-// db.deleteById({ id: 1 });
-// db.delete()
+// let a = makeId();
+// console.log(a)
 
 
 
