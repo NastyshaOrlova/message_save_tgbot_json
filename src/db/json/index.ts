@@ -2,7 +2,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
-type ID = number;
+export type ID = number;
 
 type MessageData = { // Структура сообщений 
   id: ID;

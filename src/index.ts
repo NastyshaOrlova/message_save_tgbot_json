@@ -1,11 +1,11 @@
-// import { db } from "./db/index";
-// import { makeId } from "./utils"
+import { db } from "./db/index";
+import { ID, json } from "./db/json/index"
 
-// let a = makeId();
-// console.log(a)
+console.log(db.getMessangesTextByUserId(5))
+db.updateMessange(1696360457941, "A VOT I YA")
+console.log(db.getMessangesTextByUserId(5))
 
-
-
+// console.log(db.getAllUserIds())
 
 // import 'dotenv/config'; // позволяет работать с .evn
 
