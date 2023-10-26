@@ -4,13 +4,13 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 export type ID = number;
 
-type MessageData = { // Структура сообщений 
+export type MessageData = { // Структура сообщений 
   id: ID;
   text: string;
   timestamp: string;
 };
 
-type UserData = { // Структура данных пользователя
+export type UserData = { // Структура данных пользователя
   id: ID;
   messages: ID[];
 };

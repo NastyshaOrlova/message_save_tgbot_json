@@ -1,29 +1,10 @@
-import { db } from "./db/index";
-import { ID, json } from "./db/json/index"
+import TelegramBot from "node-telegram-bot-api";
+import { db } from "./db";
 
-console.log(db.getMessangesTextByUserId(5))
-db.updateMessange(1696360457941, "A VOT I YA")
-console.log(db.getMessangesTextByUserId(5))
+const BOT_TOKEN = '6970020467:AAEzqlR2eTwnKc0--LtfhXgalAAqUoU4uM4';
 
-// console.log(db.getAllUserIds())
+const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
-// import 'dotenv/config'; // позволяет работать с .evn
-
-// import TelegramBot from 'node-telegram-bot-api'; // библиотека для работы с тг-ботом
-
-// import { config } from './config';
-// import { db } from './db';
-
-// // console.log(db.getUsers());
-// // console.log(db.createUser());
-// // console.log(db.getUsers());
-// console.log(db.createMessage({ text: 'Hello', timestamp: new Date(), userId: 235235423 }));
-
-// // prisma.message.findMany({}).then(console.log).catch(console.error);
-
-// const bot = new TelegramBot(config.BOT_TOKEN, { polling: true });
-// // // // создание бота(с нашим токеном и разрешение на получение сообщений)
-
-
-
-
+bot.on('message',async msg => {
+    console.log(msg)
+})

@@ -1,181 +1,155 @@
 
+import { Transform } from "stream";
 import { makeId } from "../utils"
-import { ID, json } from "./json/index"
+import { ID, MessageData, UserData, json } from "./json/index"
+import { MetadataArgsStorage } from "typeorm/metadata-args/MetadataArgsStorage";
  
-type User = { 
-  id: ID;
-  messanges: Messange[]
-};
-
-type Messange = {
+type Message = {
   id: ID;
   text: string;
   timestamp: Date;
 };
 
+type User = { 
+  id: ID;
+  messages: Message[]
+};
+
+// превращаем статику в динамику
+const transformMessage = (messageData: MessageData): Message => {
+  return {
+    id: messageData.id,
+    text: messageData.text,
+    timestamp: new Date(messageData.timestamp)
+  };
+};
+
+const transformUser = (userData: UserData): User => {
+  const messageDataMap = json.messages.read();
+
+  const user: User = {
+    id: userData.id,
+    messages: userData.messages.map(messageId => transformMessage(messageDataMap[messageId]))
+  };
+
+  return user;
+};
 
 export const db = { // методы работы с данными
-  // Create
-  createUser: (id?: number): void => {
-    const currentData = json.users.read();
-    if (!id) {
-      id = makeId();
-    }
-    if (currentData.some(user => user.id === id)) {
-      console.log("Такой ID уже существует, введите другой")
-      return
+  createUser: (id?: number): User => { // создание нового user
+    const currentData = json.users.read(); // чтение бд
+    id = id ?? makeId(); // создаем нов.id, если он не передан
+
+    if (currentData.some(user => user.id === id)) { // проверка, если id уже такой есть
+      throw Error('Такой ID уже существует, введите другой')
     }
 
-    const newUser = {
-      id: id,
-      messages: []
-    };
+    const newUserData: UserData = { id, messages: [] }; // создание нового объекта пользователя
 
-    currentData.push(newUser);
-    json.users.write(currentData);
+    currentData.push(newUserData); // добавляем его в текущую бд
+    json.users.write(currentData); // перезаписываем бд
+
+    const newUser = transformUser(newUserData); // превращаем из статики в динамику
+
+    return newUser;
   },
 
-  creatMessangeByUserId({ id, text }: { id: ID, text: string } ): void {
-    const users = json.users.read(); 
-    const messages = json.messages.read();
-    if (!users.some(user => user.id === id)) {
-      console.log('Такого ID не существует')
-      return
-    }
+  creatMessage({ userId, text, timestamp }: { userId: ID, text: string, timestamp?: Date }): Message { // создание сообщения
+    const updatedUser = json.users.read().find(user => user.id === userId); // находим user по id
+    if(!updatedUser) throw Error('Такого ID не существует'); // проверка, есть ли такой id
 
-    const messageId = makeId();
-    const newMessange = {
+    const messageData = json.messages.read(); // получаем messages из бд
+
+    const messageId = makeId(); // генерируем новый id для сообщения
+
+    const newMessageData: MessageData = { // создаем новое сообщение
       id: messageId,
       text: text,
-      timestamp: new Date().toISOString()
+      timestamp: timestamp?.toISOString() ?? new Date().toISOString() // либо конркетное время, либо новое автоматически
     }
 
-    messages[messageId] = newMessange; 
-    json.messages.write(messages);
+    messageData[messageId] = newMessageData; // это и есть новое сообщение(объект)
+    json.messages.write(messageData) // перезаписываем бд сообщений
 
-    const user = users.find(user => user.id === id);
-    user!.messages.push(messageId);
-    json.users.write(users);
+    updatedUser.messages.push(messageId); // добавляем ID нового сообщения в массив сообщений пользователя
+
+    const users = json.users.read(); // получаем бд users
+    const updatedUsers = users.map(storedUser => storedUser.id === updatedUser.id ? updatedUser : storedUser); // обновленые все пользователи 
+    json.users.write(updatedUsers); // перезапись бд users
+
+    return transformMessage(newMessageData); // возвращение из статике в динамику
   },
 
-  // Read
-  getAllUserIds: (): ID[] => {
-    const currentData = json.users.read();
-    return currentData.map(user => user.id)
+  getUserById: (id: ID): User | null => { // получение user по ID
+    const users = json.users.read(); // чтение бд
+    const user = users.find(user => user.id === id); // находим конкретного user
+    if (!user) return null; // проверка, есть ли такой user в бд
+
+    return transformUser(user); // превращаем в динамику
   },
 
-  getMessangesTextByUserId: (id: ID): string[]  => {
-    const users = json.users.read(); 
-    const messages = json.messages.read();
-
-    const user = users.find(user => user.id === id);
-
-    if (!users) {
-      console.log('Такого ID не существует')
-      return [];
-    }
-
-    return user!.messages.map(messageId => messages[messageId].text);
+  assertUserById: (id: ID): User => { 
+    const user = db.getUserById(id);
+    if (!user) throw Error('Такого ID не существует');
+    return user;
   },
 
-  getMessangesIdsByUserId: (id: ID): number[]  => {
-    const users = json.users.read(); 
-    const messages = json.messages.read();
+  updateMessage: ({id, text}: {id: ID, text: string}): Message => {
+    const messagesData = json.messages.read(); // получаем все сообщения 
 
-    const user = users.find(user => user.id === id);
+    const storedMessage = messagesData[id]; // находим тот id сообщения, у которого будем text менять
+    if (!storedMessage) throw Error ('Сообщение с таким ID не найдено');
 
-    if (!users) {
-      console.log('Такого ID не существует')
-      return [];
-    }
+    storedMessage.text = text; // перезаписываем text
 
-    return user!.messages.map(messageId => messages[messageId].id);
-  },
-  
-  getMessangesTextAll: (): string[] => {
-    const messages = json.messages.read();
-    return Object.values(messages).map(message => message.text); 
+    messagesData[id] = storedMessage; // сохраняем уже обновленый вариант в старый 
+    json.messages.write(messagesData); // записываюм в бд
+
+    return transformMessage(storedMessage); // возвращаем статику 
   },
 
-  // Update
-  updateMessange: (messageId: ID, newText: string): void => {
-    const messages = json.messages.read();
-
-    const message = messages[messageId];
-
-    if (!message) {
-      console.log('Сообщение с таким ID не найдено.');
-      return;
-    }
-
-    message.text = newText;
-
-    json.messages.write(messages);
-  },
-
-  // Delete
   deleteUserById: (id: ID): void => {
-    const users = json.users.read(); 
-    const messages = json.messages.read();
+    const users = json.users.read(); // получаем бд users
+    const messages = json.messages.read(); // получаем бд messages
 
-    const userIndex = users.findIndex(user => user.id === id);
+    const userIndex = users.findIndex(user => user.id === id); // ищем индекс пользователя с заданным ID
 
-    if (userIndex === -1) {
-      console.log('Пользователь с таким ID не найден');
-      return;
+    if (userIndex === -1) { // проверка, если id не найдет
+      throw Error('Пользователь с таким ID не найден');
     }
     
-    const userMessagesIds = users[userIndex].messages;
+    const userMessagesIds = users[userIndex].messages; // получаем массив ID сообщений этого пользователя
 
-    users.splice(userIndex, 1)
+    users.splice(userIndex, 1) // удаляем пользователя из списка
 
-    userMessagesIds.forEach(messageId => {
+    userMessagesIds.forEach(messageId => { // удаляем все сообщения этого пользователя
       delete messages[messageId];
     })
 
-    json.users.write(users);
+    json.users.write(users); // обновляем инфо о users и messages в базе данных
     json.messages.write(messages);
   }, 
-
-  deleteMesangesAllById: (id: ID): void => {
-    const users = json.users.read(); 
+  
+  deleteMessageById: (id: ID): void => {
     const messages = json.messages.read();
+    const users = json.users.read(); 
 
-    const user = users.find(user => user.id === id);
+    const messageToDelete = messages[id] // сообщение, которое удалиться
+    if (!messageToDelete) throw Error('Сообщение с таким ID не найдено');
 
-    if (!users) {
-      console.log('Такого ID не существует')
-      return;
-    }
-
-    const userMessagesIds = user?.messages;
-    userMessagesIds?.forEach(messageId => {
-      delete messages[messageId]
-    })
-
-    json.users.write(users);
+    delete messages[id]; // удаление  
     json.messages.write(messages);
-  },
-
-  deleteMessange: (messageId: ID): void => {
-    const users = json.users.read(); 
-    const messages = json.messages.read();
-
-    if (!messages[messageId]) {
-      console.log('Сообщение с таким ID не найдено.');
-      return;
-    }
-
-    delete messages[messageId];
 
     users.forEach(user => {
-      const messageIndex = user.messages.indexOf(messageId);
+      const messageIndex = user.messages.indexOf(id); // находим index сообщения
       if (messageIndex !== -1) {
-        user.messages.splice(messageIndex, 1);
+          user.messages.splice(messageIndex, 1); // удаление id сообщения из массива
       }
-    })
+    });
 
-    json.messages.write(messages);
     json.users.write(users);
-  }
+
+   }
 };
+
+
