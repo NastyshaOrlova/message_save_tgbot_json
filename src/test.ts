@@ -14,23 +14,23 @@ let user = db.createUser(USER_ID);
 
 console.log(user); // user with no messages
 
-const message1 = db.creatMessage({ userId: user.id, text: 'Hello', timestamp: new Date() });
+const message1 = db.createMessage({ userId: user.id, text: 'Hello', timestamp: new Date() });
 console.log(message1);
-const message2 = db.creatMessage({ userId: user.id, text: 'World' });
+const message2 = db.createMessage({ userId: user.id, text: 'World' });
 console.log(message2);
 
-user = db.assertUserById(user.id);
+let updatedUser = db.getUserById(user.id);
 
-console.log(user); // user with 2 messages
+console.log(updatedUser); // user with 2 messages
 
 const updateMessage1 = db.updateMessage({ id: message1.id, text: 'vooot' });
 
 console.log(updateMessage1);
 
-user = db.assertUserById(user.id);
-console.log(user); // user with 2 messages + update message'Hi'
+updatedUser = db.getUserById(user.id);
+console.log(updatedUser); // user with 2 messages + update message'Hi'
 
 db.deleteMessageById(message1.id);
 
-user = db.assertUserById(user.id);
-console.log(user); // user with 1 messages 'World'
+updatedUser = db.getUserById(user.id);
+console.log(updatedUser); // user with 1 messages 'World'
