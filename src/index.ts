@@ -1,39 +1,46 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { db } from './db';
+import { text } from 'stream/consumers';
 
 const BOT_TOKEN = '6260224481:AAEhQT4HVJPGJfiPP_8J71StjFY6VaCNdHs';
-
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+
+const isRegistered = (id: number) => db.getAllUsersIds().includes(id);
 
 bot.on('message', async msg => {
   const id = msg.chat.id;
 
-  if (typeof msg.text === 'string') {
-    // not reg and text /start
-    if (!db.getAllUsersIds().includes(id) && msg.text === '/start') {
-      db.createUser(id);
-      bot.sendMessage(id, 'You have registered!');
-      return;
-    }
-
-    // not reg and some text(not /start)
-    if (!db.getAllUsersIds().includes(id) && msg.text !== '/start') {
-      bot.sendMessage(id, 'Enter first /start');
-      return;
-    }
-
-    // reg and text /start
-    if (db.getAllUsersIds().includes(id) && msg.text === '/start') {
-      bot.sendMessage(id, 'You have already registered. Enter the message you want to save!');
-      return;
-    }
-
-    // reg and some text(not /start)
-    if (db.getAllUsersIds().includes(id) && msg.text !== '/start') {
-      // maim code
-    }
-  } else {
+  // check for string type
+  if (typeof msg.text !== 'string') {
     bot.sendMessage(id, 'We save only the text!');
     return;
   }
+
+  if (!isRegistered(id)) {
+    if (msg.text === '/start') {
+      db.createUser(id);
+      bot.sendMessage(id, 'You have registered!');
+    } else {
+      bot.sendMessage(id, 'Enter first /start');
+    }
+    return;
+  }
+
+  if (msg.text === '/start') {
+    bot.sendMessage(id, 'You have already registered. Enter the message you want to save!');
+    return;
+  }
+
+  db.createMessage({ userId: id, text: msg.text });
+  bot.sendMessage(id, `We have saved your message: "${msg.text}"`);
+
+  // Handlers = Function
+  // /start => welcome(userId)
+  // /show => showAll(userId)
+  // /delete all => deleteAll(userId)
+  // /delete <idx> => deleteByIndex(userId, idx)
+  // any other message => saveMessage(userId, text)
+  // unknownInput()
+
+  // Code for a registered user:
 });

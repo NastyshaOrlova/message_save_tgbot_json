@@ -4,6 +4,7 @@ export type ID = number;
 
 export type MessageData = {
   id: ID;
+  index: number;
   text: string;
   timestamp: string;
 };
