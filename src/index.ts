@@ -32,16 +32,13 @@ bot.on('message', async msg => {
   }
 
   if (msg.text === '/show') {
-    const str = db.getUserById(id)?.messages.map(message => {
-      return `${message.index}. ${message.text}`;
-    });
-
-    if (str!.length > 0) {
-      bot.sendMessage(id, 'Your messages:\n' + str?.join('\n'));
-      return;
+    const userMessages = db.getUserById(id)?.messages;
+    if (userMessages && userMessages.length > 0) {
+      const formattedMessages = userMessages.map(message => `${message.index}. ${message.text}`);
+      bot.sendMessage(id, 'Your messages:\n' + formattedMessages.join('\n'));
+    } else {
+      bot.sendMessage(id, 'You have no saved messages.');
     }
-
-    bot.sendMessage(id, 'You have no saved messages.');
     return;
   }
 
