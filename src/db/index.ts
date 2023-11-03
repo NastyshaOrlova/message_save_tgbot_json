@@ -84,6 +84,13 @@ export const db = {
     return json.read().users.map(user => user.id);
   },
 
+  getMessagesById: (id: ID) => {
+    const users = json.read();
+    const messages = users.users.find(user => user.id === id)?.messages;
+    const formattedMessages = messages?.map(message => `${message.index}. ${message.text}`);
+    return formattedMessages;
+  },
+
   updateMessage: ({ id, text }: { id: ID; text: string }) => {
     const currentUsers = json.read();
     const currentUser = currentUsers.users.find(user => user.messages.some(message => message.id === id));

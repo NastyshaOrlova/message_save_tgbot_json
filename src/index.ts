@@ -32,9 +32,9 @@ bot.on('message', async msg => {
   }
 
   if (msg.text === '/show') {
-    const userMessages = db.getUserById(id)?.messages;
-    if (userMessages && userMessages.length > 0) {
-      const formattedMessages = userMessages.map(message => `${message.index}. ${message.text}`);
+    const formattedMessages = db.getMessagesById(id);
+
+    if (formattedMessages && formattedMessages.length > 0) {
       bot.sendMessage(id, 'Your messages:\n' + formattedMessages.join('\n'));
     } else {
       bot.sendMessage(id, 'You have no saved messages.');
