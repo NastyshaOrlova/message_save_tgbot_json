@@ -1,5 +1,3 @@
-// The module is designed to read and write data
-
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 export type ID = number;

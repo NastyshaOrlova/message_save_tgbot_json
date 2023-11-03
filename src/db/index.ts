@@ -1,7 +1,5 @@
-import { Transform } from 'stream';
 import { makeId } from '../utils';
 import { ID, MessageData, UserData, json } from './json/index';
-import { time } from 'console';
 
 type Message = {
   id: ID;
@@ -58,11 +56,11 @@ export const db = {
     return newMessage;
   },
 
-  getUserById: (id: ID) => {
+  getUserById: (id: ID): User | undefined => {
     const currentUsers = json.read();
     const user = currentUsers.users.find(user => user.id === id);
 
-    if (!user) throw Error('Такого ID не существует');
+    if (!user) return undefined;
 
     const transformUser: User = {
       id: user.id,
@@ -74,6 +72,10 @@ export const db = {
     };
 
     return transformUser;
+  },
+
+  getAllUsersIds: (): number[] => {
+    return json.read().users.map(user => user.id);
   },
 
   updateMessage: ({ id, text }: { id: ID; text: string }) => {
