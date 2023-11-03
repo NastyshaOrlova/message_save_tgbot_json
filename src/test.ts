@@ -40,6 +40,8 @@ import { db } from './db/index';
 // let user = db.getUserById(123);
 // console.log(user);
 
-console.log(db.getMessagesById(123)); // 1. Hello 2. World
+// console.log(db.getMessagesById(123)); // 1. Hello 2. World
 
-// db.deleteMessageByIndex(1);
+// db.deleteMessageByIndex({ id: 123, index: 1 });
+
+// console.log(db.getMessagesById(123)); // 1. World

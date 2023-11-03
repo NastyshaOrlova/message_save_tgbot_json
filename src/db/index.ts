@@ -105,26 +105,21 @@ export const db = {
     return currentMessage;
   },
 
-  deleteUserById: (id: ID): void => {
+  deleteMessageByIndex: ({ id, index }: { id: ID; index: number }): void => {
     const currentUsers = json.read();
     const user = currentUsers.users.find(user => user.id === id);
-    if (!user) throw Error('ID does not exist');
 
-    currentUsers.users = currentUsers.users.filter(user => user.id !== id);
+    if (!user) {
+      throw Error('User not found');
+    }
 
-    json.write(currentUsers);
-  },
+    user.messages = user.messages.filter(message => message.index !== index);
 
-  deleteMessageById: (id: ID): void => {
-    const currentUsers = json.read();
-
-    const currentUser = currentUsers.users.find(user => user.messages.some(message => message.id === id));
-    if (!currentUser) throw Error('There is no such user');
-
-    const initialMessagesLength = currentUser.messages.length;
-    currentUser.messages = currentUser.messages.filter(message => message.id !== id);
-
-    if (initialMessagesLength === currentUser.messages.length) throw Error('There is no such message');
+    if (user.messages.length > 0) {
+      user.messages.forEach((message, idx) => {
+        message.index = idx + 1;
+      });
+    }
 
     json.write(currentUsers);
   },
