@@ -31,15 +31,29 @@ bot.on('message', async msg => {
     return;
   }
 
+  if (msg.text === '/show') {
+    const str = db.getUserById(id)?.messages.map(message => {
+      return `${message.index}. ${message.text}`;
+    });
+
+    if (str!.length > 0) {
+      bot.sendMessage(id, 'Your messages:\n' + str?.join('\n'));
+      return;
+    }
+
+    bot.sendMessage(id, 'You have no saved messages.');
+    return;
+  }
+
   db.createMessage({ userId: id, text: msg.text });
   bot.sendMessage(id, `We have saved your message: "${msg.text}"`);
 
   // Handlers = Function
-  // /start => welcome(userId)
-  // /show => showAll(userId)
-  // /delete all => deleteAll(userId)
-  // /delete <idx> => deleteByIndex(userId, idx)
-  // any other message => saveMessage(userId, text)
+  // /start => welcome(userId)                         +
+  // /show => showAll(userId)                          +
+  // /delete all => deleteAll(userId)                  -
+  // /delete <idx> => deleteByIndex(userId, idx)       -
+  // any other message => saveMessage(userId, text)    +
   // unknownInput()
 
   // Code for a registered user:
