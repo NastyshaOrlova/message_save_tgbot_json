@@ -23,7 +23,7 @@ import { db } from './db/index';
 
 // console.log(updatedUser); // user with 2 messages
 
-// const updateMessage1 = db.updateMessage({ id: message1.id, text: 'vooot' });
+// const updateMessage1 = db.updateMessage({ id: message1.id, text: 'vot' });
 
 // console.log(updateMessage1);
 
@@ -40,8 +40,14 @@ import { db } from './db/index';
 // let user = db.getUserById(123);
 // console.log(user);
 
-// console.log(db.getMessagesById(123)); // 1. Hello 2. World
+console.log(db.getMessagesById(123)); // 1. Hello 2. World
 
 // db.deleteMessageByIndex({ id: 123, index: 1 });
 
 // console.log(db.getMessagesById(123)); // 1. World
+
+// console.log(db.getMessagesById(123)); // 1. Hello 2. World
+
+// db.deleteAllMessages(123);
+
+// console.log(db.getMessagesById(123)); // []

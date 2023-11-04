@@ -84,7 +84,7 @@ export const db = {
     return json.read().users.map(user => user.id);
   },
 
-  getMessagesById: (id: ID) => {
+  getMessagesById: (id: ID): string[] | undefined => {
     const users = json.read();
     const messages = users.users.find(user => user.id === id)?.messages;
     const formattedMessages = messages?.map(message => `${message.index}. ${message.text}`);
@@ -109,17 +109,24 @@ export const db = {
     const currentUsers = json.read();
     const user = currentUsers.users.find(user => user.id === id);
 
-    if (!user) {
-      throw Error('User not found');
-    }
+    if (!user) throw Error('User not found');
 
     user.messages = user.messages.filter(message => message.index !== index);
-
     if (user.messages.length > 0) {
       user.messages.forEach((message, idx) => {
         message.index = idx + 1;
       });
     }
+    json.write(currentUsers);
+  },
+
+  deleteAllMessages: (id: ID): void => {
+    const currentUsers = json.read();
+    const currentUser = currentUsers.users.find(user => user.id === id);
+
+    if (!currentUser) throw Error('User not found');
+
+    currentUser.messages = [];
 
     json.write(currentUsers);
   },
