@@ -1,5 +1,5 @@
 import { makeId } from '../utils';
-import { ID, MessageData, UserData, json } from './json/index';
+import { ID, MessageData, UserData, json } from './json/JSON_SOURCE';
 
 type Message = {
   id: ID;
@@ -13,27 +13,27 @@ type User = {
   messages: Message[];
 };
 
+export const createUser = (id?: number): UserData => {
+  const currentUsers = json.read();
+
+  id = id ?? makeId();
+
+  if (currentUsers.users.some(user => user.id === id)) {
+    throw Error('This ID already exists');
+  }
+
+  const newUser: UserData = {
+    id: id,
+    messages: [],
+  };
+
+  currentUsers.users.push(newUser);
+  json.write(currentUsers);
+
+  return newUser;
+};
+
 export const db = {
-  createUser: (id?: number): UserData => {
-    const currentUsers = json.read();
-
-    id = id ?? makeId();
-
-    if (currentUsers.users.some(user => user.id === id)) {
-      throw Error('This ID already exists');
-    }
-
-    const newUser: UserData = {
-      id: id,
-      messages: [],
-    };
-
-    currentUsers.users.push(newUser);
-    json.write(currentUsers);
-
-    return newUser;
-  },
-
   createMessage({ userId, text, timestamp }: { userId: ID; text: string; timestamp?: Date }): Message {
     const currentUsers = json.read();
     const user = currentUsers.users.find(user => user.id === userId);
@@ -93,11 +93,10 @@ export const db = {
     return formattedMessages;
   },
 
-  checkUserAuth: (id: ID): boolean => {
+  checkUserById: (id: ID): boolean => {
     const users = json.read();
-    const isAuth = users.users.some(user => user.id === id);
-
-    return isAuth;
+    const isUserPresent = users.users.some(user => user.id === id);
+    return isUserPresent;
   },
 
   updateMessage: ({ id, text }: { id: ID; text: string }) => {
