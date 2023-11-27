@@ -38,9 +38,11 @@ export const db = {
     const currentUsers = json.read();
     const user = currentUsers.users.find(user => user.id === userId);
 
-    if (!user) throw Error('The user is not in the db');
+    if (!user) {
+      console.log('The user is not in the db');
+    }
 
-    const currentIndex = user.messages.length + 1;
+    const currentIndex = user!.messages.length + 1;
 
     const newMessage: Message = {
       id: makeId(),
@@ -56,7 +58,7 @@ export const db = {
       timestamp: newMessage.timestamp.toISOString(),
     };
 
-    user.messages.push(newMessageData);
+    user!.messages.push(newMessageData);
     json.write(currentUsers);
     return newMessage;
   },
@@ -89,6 +91,13 @@ export const db = {
     const messages = users.users.find(user => user.id === id)?.messages;
     const formattedMessages = messages?.map(message => `${message.index}. ${message.text}`);
     return formattedMessages;
+  },
+
+  checkUserAuth: (id: ID): boolean => {
+    const users = json.read();
+    const isAuth = users.users.some(user => user.id === id);
+
+    return isAuth;
   },
 
   updateMessage: ({ id, text }: { id: ID; text: string }) => {
