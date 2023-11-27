@@ -1,5 +1,4 @@
 import TelegramBot, { Message } from 'node-telegram-bot-api';
-import { auth } from '../bot/auth';
 
 export class LibBot {
   private bot: TelegramBot;
